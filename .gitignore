@@ -1,0 +1,8 @@
+# Archivos que no se suben al repositorio
+.env
+node_modules/
+vendor/
+.next/
+*.sqlite
+.DS_Store
+Thumbs.db
