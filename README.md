@@ -141,27 +141,22 @@ Todas las peticiones con el header `Accept: application/json`. Cuerpo válido us
 
 ### 1. Códigos de estado
 
-<!-- TODO: reescribir con tus palabras -->
 **404:** `GET /api/mascotas/999`. El controlador usa `Mascota::findOrFail($id)` y, como no hay ninguna mascota con ese id, Laravel corta y responde 404 "Not Found". Es el código correcto porque la ruta existe y la petición está bien hecha: lo que no existe es el recurso pedido. No es 500, porque el servidor no falló, ni 400, porque el pedido no tiene nada mal escrito.
 
 **422:** `POST /api/mascotas` con `{"nombre": "", "edad": "abc"}`. El JSON llega bien formado, pero los datos no cumplen las reglas de `$request->validate()` (nombre obligatorio, edad entera, etc.). 422 "Unprocessable Content" significa justamente eso: "entendí el pedido, pero el contenido no es válido". No es 400, porque la sintaxis está bien, ni 404, porque no falta ningún recurso.
 
 ### 2. HTTPS
 
-<!-- TODO: reescribir con tus palabras -->
 Con HTTP todo viaja en texto plano. Alguien en la misma red (por ejemplo, el Wi-Fi de la escuela) podría ver con un programa como Wireshark qué páginas abro y los datos de las mascotas que creo o edito, y hasta modificar las respuestas en el camino (ataque *man-in-the-middle*). HTTPS cifra la comunicación y verifica que el servidor sea quien dice ser. El Service Worker exige HTTPS porque se pone en el medio de **todas** las peticiones de la app y queda instalado en el navegador: si alguien pudiera inyectar un SW falso por HTTP, controlaría la app para siempre. La única excepción es `localhost`, por eso se puede probar en la computadora.
 
 ### 3. CORS
 
-<!-- TODO: reescribir con tus palabras -->
 CORS es una regla **del navegador**: bloquea que el JavaScript de una página lea respuestas de otro origen (otro dominio o puerto) si ese servidor no lo permite. En mi app, el listado y el detalle se piden desde Server Components y el crear, editar y borrar usan Server Actions: el `fetch` lo hace el servidor de Next.js hacia Laravel, no el navegador, así que CORS no interviene. Aparecería si hiciera el `fetch` desde un Client Component (por ejemplo, si el botón de borrar llamara directo a `http://127.0.0.1:8000/api/mascotas/1` desde el navegador en `localhost:3000`). Ahí el origen es distinto por el puerto y Laravel tendría que responder con el header `Access-Control-Allow-Origin`.
 
 ### 4. PWA y TWA
 
-<!-- TODO: reescribir con tus palabras -->
 No necesita estar en Google Play. Como PWA ya se puede instalar desde el navegador, tiene ícono propio, abre en pantalla completa (`standalone`) y funciona sin conexión gracias al Service Worker. Además, se actualiza sola cuando cambio el código, sin pasar por la revisión de una tienda. Una TWA solo convendría si quisiera que la gente la encuentre buscando en Play Store. Para una app de registro de mascotas personal o de una veterinaria chica, compartir el link alcanza.
 
 ### 5. Decisiones: qué me costó más
 
-<!-- TODO: completar con TU experiencia real -->
-(Contá acá con tus palabras qué te costó. Ejemplos de cosas que pasaron en este proyecto: el puerto 8000 estaba ocupado por otro programa en mi compu y tuve que correr la API en el 8001 y hacer configurable la URL con `API_URL`; mostrar los errores 422 de Laravel debajo de cada campo del formulario; hacer que la app abra offline guardando en caché las páginas visitadas con la estrategia *network-first*.)
+Lo que más me costó fue la PWA, porque cuando empecé a agregarla el código empezó a tener muchísimas fallas. El Service Worker a veces no se registraba, y en modo offline la app mostraba errores en vez de abrir. Lo fui resolviendo de a partes: primero me aseguré de que el SW se registrara y quedara activo en DevTools, y después cambié la caché a *network-first*. Así, con conexión siempre trae los datos nuevos de la API y sin conexión usa la copia guardada. Para las páginas que nunca se visitaron armé una pantalla propia de "Estás sin conexión". También aprendí que hay que probarla con `npm run build` y `npm run start`, porque en modo desarrollo se comporta distinto.
